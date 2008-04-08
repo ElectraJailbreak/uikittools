@@ -1,5 +1,8 @@
-#include <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
 #include <unistd.h>
+#include <cstdlib>
 
 int argc_;
 char **argv_;
@@ -44,7 +47,7 @@ int main(int argc, char *argv[]) {
     argv_ = argv;
 
     char *args[] = {
-        "AlertSheet", NULL
+        (char *) "AlertSheet", NULL
     };
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
