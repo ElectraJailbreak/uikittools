@@ -43,11 +43,13 @@ int main(int argc, char *argv[]) {
 
     bool taken = false;
 
-    for (unsigned i(0); i != 10 && !taken; ++i) {
+    for (unsigned i(0); i != 100 && !taken; ++i) {
         NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-        for (unsigned j(0); j != 1000 && !taken; ++j) {
-            unsigned index = i * 1000 + j;
+        for (unsigned j(0); j != 100 && !taken; ++j) {
+            unsigned index = i * 100 + j;
+            if (index == 0)
+                continue;
 
             NSString *file = [NSString stringWithFormat:@"%@/IMG_%04u.PNG", apple, index];
 
@@ -69,6 +71,8 @@ int main(int argc, char *argv[]) {
                 );
 
                 taken = true;
+
+                NSLog(@"DONE: %@", file);
             }
         }
 
@@ -76,7 +80,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (!taken) {
-        NSLog(@"%@ is full", apple);
+        NSLog(@"%@ is too full", apple);
         return 1;
     }
 
