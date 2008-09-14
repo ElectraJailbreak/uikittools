@@ -1,3 +1,10 @@
+#import <Foundation/Foundation.h>
+
+#include <notify.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 @interface NSMutableArray (Cydia)
 - (void) addInfoDictionary:(NSDictionary *)info;
 @end
@@ -23,12 +30,12 @@
 
 @end
 
-#define Cache_ "/User/Library/Caches/com.apple.mobile.installation.plist"
-
 int main() {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    if (NSMutableDictionary *cache = [[NSMutableDictionary alloc] initWithContentsOfFile:@ Cache_]) {
+    NSString *path([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", NSHomeDirectory()]);
+
+    if (NSMutableDictionary *cache = [[NSMutableDictionary alloc] initWithContentsOfFile:path]) {
         [cache autorelease];
 
         NSFileManager *manager = [NSFileManager defaultManager];
@@ -36,10 +43,6 @@ int main() {
 
         id system = [cache objectForKey:@"System"];
         if (system == nil)
-            goto error;
-
-        struct stat info;
-        if (stat(Cache_, &info) == -1)
             goto error;
 
         [system removeAllObjects];
@@ -58,16 +61,11 @@ int main() {
                 }
         } else goto error;
 
-        [cache writeToFile:@Cache_ atomically:YES];
-
-        if (chown(Cache_, info.st_uid, info.st_gid) == -1)
-            goto error;
-        if (chmod(Cache_, info.st_mode) == -1)
-            goto error;
+        [cache writeToFile:path atomically:YES];
 
         if (false) error:
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
-    }
+    } else fprintf(stderr, "cannot open cache file. incorrect user?\n");
 
     notify_post("com.apple.mobile.application_installed");
 
