@@ -1,2 +1,2 @@
 #!/bin/bash
-PATH=/apl/n42/pre/bin:$PATH exec /apl/tel/exec.sh uikittools make "$@"
+PATH=/apl/n42/pre/bin:$PATH exec /apl/tel/exec.sh - make "$@"

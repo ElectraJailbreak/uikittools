@@ -1,0 +1,11 @@
+Package: uikittools
+Priority: optional
+Section: Utilities
+Installed-Size: %S
+Maintainer: Jay Freeman (saurik) <saurik@saurik.com>
+Architecture: iphoneos-arm
+Version: 1.0.2995-1
+Description: UIKit-related command line access utilities
+Name: UIKit Tools
+Author: Jay Freeman (saurik) <saurik@saurik.com>
+Depiction: http://cydia.saurik.com/info/uikittools/

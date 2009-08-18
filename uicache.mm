@@ -54,9 +54,13 @@ int main() {
                     NSString *plist = [path stringByAppendingPathComponent:@"Info.plist"];
                     if (NSMutableDictionary *info = [[NSMutableDictionary alloc] initWithContentsOfFile:plist]) {
                         [info autorelease];
-                        [info setObject:path forKey:@"Path"];
-                        [info setObject:@"System" forKey:@"ApplicationType"];
-                        [system addInfoDictionary:info];
+                        if ([info objectForKey:@"CFBundleIdentifier"] == nil)
+                            fprintf(stderr, "%s missing CFBundleIdentifier", [app UTF8String]);
+                        else {
+                            [info setObject:path forKey:@"Path"];
+                            [info setObject:@"System" forKey:@"ApplicationType"];
+                            [system addInfoDictionary:info];
+                        }
                     }
                 }
         } else goto error;
