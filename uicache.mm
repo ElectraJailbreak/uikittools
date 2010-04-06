@@ -75,8 +75,10 @@ int main() {
         [cache writeToFile:path atomically:YES];
 
         if (workspace != nil)
-            for (NSString *bundle in bundles)
+            for (NSString *bundle in bundles) {
+                [workspace unregisterApplication:[NSURL fileURLWithPath:bundle]];
                 [workspace registerApplication:[NSURL fileURLWithPath:bundle]];
+            }
 
         if (false) error:
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
