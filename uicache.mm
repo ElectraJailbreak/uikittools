@@ -5,6 +5,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <objc/runtime.h>
+
+#include <MobileCoreServices/LSApplicationWorkspace.h>
+
 @interface NSMutableArray (Cydia)
 - (void) addInfoDictionary:(NSDictionary *)info;
 @end
@@ -35,11 +39,14 @@ int main() {
 
     NSString *path([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", NSHomeDirectory()]);
 
-    if (NSMutableDictionary *cache = [[NSMutableDictionary alloc] initWithContentsOfFile:path]) {
-        [cache autorelease];
+    Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
+    LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
 
+    if (NSMutableDictionary *cache = [NSMutableDictionary dictionaryWithContentsOfFile:path]) {
         NSFileManager *manager = [NSFileManager defaultManager];
         NSError *error = nil;
+
+        NSMutableArray *bundles([NSMutableArray arrayWithCapacity:16]);
 
         id system = [cache objectForKey:@"System"];
         if (system == nil)
@@ -52,20 +59,24 @@ int main() {
                 if ([app hasSuffix:@".app"]) {
                     NSString *path = [@"/Applications" stringByAppendingPathComponent:app];
                     NSString *plist = [path stringByAppendingPathComponent:@"Info.plist"];
-                    if (NSMutableDictionary *info = [[NSMutableDictionary alloc] initWithContentsOfFile:plist]) {
-                        [info autorelease];
-                        if ([info objectForKey:@"CFBundleIdentifier"] == nil)
-                            fprintf(stderr, "%s missing CFBundleIdentifier", [app UTF8String]);
-                        else {
+
+                    if (NSMutableDictionary *info = [NSMutableDictionary dictionaryWithContentsOfFile:plist]) {
+                        if (NSString *bundle = [info objectForKey:@"CFBundleIdentifier"]) {
+                            [bundles addObject:path];
                             [info setObject:path forKey:@"Path"];
                             [info setObject:@"System" forKey:@"ApplicationType"];
                             [system addInfoDictionary:info];
-                        }
+                        } else
+                            fprintf(stderr, "%s missing CFBundleIdentifier", [app UTF8String]);
                     }
                 }
         } else goto error;
 
         [cache writeToFile:path atomically:YES];
+
+        if (workspace != nil)
+            for (NSString *bundle in bundles)
+                [workspace registerApplication:[NSURL fileURLWithPath:bundle]];
 
         if (false) error:
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);

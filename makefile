@@ -1,4 +1,4 @@
-uikittools = uiduid uishoot uicache uiopen
+uikittools = uiduid uishoot uicache uiopen gssc
 
 all: $(uikittools)
 
@@ -8,7 +8,7 @@ clean:
 .PHONY: all clean package
 
 %: %.mm
-	$${PKG_TARG}-g++ -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -lobjc
+	$${PKG_TARG}-g++ -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -framework GraphicsServices -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
 	ldid -S $@
 
 package: all

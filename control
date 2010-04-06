@@ -4,8 +4,8 @@ Section: Utilities
 Installed-Size: %S
 Maintainer: Jay Freeman (saurik) <saurik@saurik.com>
 Architecture: iphoneos-arm
-Version: 1.0.2995-1
-Description: UIKit-related command line access utilities
+Version: 1.0.3160-1
+Description: UIKit/GraphicsServices command line access
 Name: UIKit Tools
 Author: Jay Freeman (saurik) <saurik@saurik.com>
 Depiction: http://cydia.saurik.com/info/uikittools/
