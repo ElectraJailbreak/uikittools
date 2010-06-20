@@ -1,4 +1,4 @@
-uikittools = uiduid uishoot uicache uiopen gssc
+uikittools = uiduid uishoot uicache uiopen gssc sbdidlaunch
 
 all: $(uikittools)
 
@@ -8,7 +8,7 @@ clean:
 .PHONY: all clean package
 
 %: %.mm
-	$${PKG_TARG}-g++ -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -framework GraphicsServices -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
+	$${PKG_TARG}-g++ -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -framework GraphicsServices -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc -framework SpringBoardServices
 	ldid -S $@
 
 package: all
