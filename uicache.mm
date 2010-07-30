@@ -37,7 +37,8 @@
 int main() {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    NSString *path([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", NSHomeDirectory()]);
+    NSString *home(NSHomeDirectory());
+    NSString *path([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", home]);
 
     Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
     LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
@@ -83,6 +84,17 @@ int main() {
         if (false) error:
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
     } else fprintf(stderr, "cannot open cache file. incorrect user?\n");
+
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons"] UTF8String]);
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons.plist"] UTF8String]);
+
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons"] UTF8String]);
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons.plist"] UTF8String]);
+
+    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache"] UTF8String]);
+    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache-small"] UTF8String]);
+
+    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/com.apple.IconsCache"] UTF8String]);
 
     notify_post("com.apple.mobile.application_installed");
 
