@@ -9,3 +9,4 @@ Description: UIKit/GraphicsServices command line access
 Name: UIKit Tools
 Author: Jay Freeman (saurik) <saurik@saurik.com>
 Depiction: http://cydia.saurik.com/info/uikittools/
+Depends: coreutils-bin

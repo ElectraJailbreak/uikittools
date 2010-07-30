@@ -85,16 +85,16 @@ int main() {
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
     } else fprintf(stderr, "cannot open cache file. incorrect user?\n");
 
-    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons"] UTF8String]);
-    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons.plist"] UTF8String]);
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons", home] UTF8String]);
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons.plist", home] UTF8String]);
 
-    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons"] UTF8String]);
-    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons.plist"] UTF8String]);
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons", home] UTF8String]);
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons.plist", home] UTF8String]);
 
-    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache"] UTF8String]);
-    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache-small"] UTF8String]);
+    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache", home] UTF8String]);
+    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache-small", home] UTF8String]);
 
-    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/com.apple.IconsCache"] UTF8String]);
+    system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/com.apple.IconsCache", home] UTF8String]);
 
     notify_post("com.apple.mobile.application_installed");
 
