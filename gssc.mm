@@ -6,6 +6,16 @@
 static CFArrayRef (*$GSSystemCopyCapability)(CFStringRef);
 static CFArrayRef (*$GSSystemGetCapability)(CFStringRef);
 
+void OnGSCapabilityChanged(
+    CFNotificationCenterRef center,
+    void *observer,
+    CFStringRef name,
+    const void *object,
+    CFDictionaryRef info
+) {
+    CFRunLoopStop(CFRunLoopGetCurrent());
+}
+
 int main(int argc, char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -21,15 +31,34 @@ int main(int argc, char *argv[]) {
     $GSSystemCopyCapability = reinterpret_cast<CFArrayRef (*)(CFStringRef)>(dlsym(RTLD_DEFAULT, "GSSystemCopyCapability"));
     $GSSystemGetCapability = reinterpret_cast<CFArrayRef (*)(CFStringRef)>(dlsym(RTLD_DEFAULT, "GSSystemGetCapability"));
 
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        NULL,
+        &OnGSCapabilityChanged,
+        CFSTR("GSCapabilitiesChanged"),
+        NULL,
+        NULL
+    );
+
     const NSArray *capability;
 
-    if ($GSSystemCopyCapability != NULL) {
-        capability = reinterpret_cast<const NSArray *>((*$GSSystemCopyCapability)(reinterpret_cast<CFStringRef>(name)));
-        capability = [capability autorelease];
-    } else if ($GSSystemGetCapability != NULL) {
-        capability = reinterpret_cast<const NSArray *>((*$GSSystemGetCapability)(reinterpret_cast<CFStringRef>(name)));
-    } else
-        capability = nil;
+    for (;;) {
+        if ($GSSystemCopyCapability != NULL) {
+            capability = reinterpret_cast<const NSArray *>((*$GSSystemCopyCapability)(reinterpret_cast<CFStringRef>(name)));
+            if (capability != nil)
+                capability = [capability autorelease];
+        } else if ($GSSystemGetCapability != NULL) {
+            capability = reinterpret_cast<const NSArray *>((*$GSSystemGetCapability)(reinterpret_cast<CFStringRef>(name)));
+        } else {
+            capability = nil;
+            break;
+        }
+
+        if (capability != nil)
+            break;
+
+        CFRunLoopRun();
+    }
 
     NSLog(@"%@", capability);
 
