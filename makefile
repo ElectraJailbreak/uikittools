@@ -8,11 +8,11 @@ clean:
 .PHONY: all clean package
 
 %: %.mm
-	$${PKG_TARG}-g++ -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -framework GraphicsServices -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc -framework SpringBoardServices
+	$${PKG_TARG}-g++ -Wall -Werror -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -framework GraphicsServices -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc -framework SpringBoardServices
 	ldid -S $@
 
 %: %.c
-	$${PKG_TARG}-gcc -o $@ $< -framework CoreFoundation
+	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -framework CoreFoundation
 	ldid -S $@
 
 package: all

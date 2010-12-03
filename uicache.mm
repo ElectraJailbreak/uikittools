@@ -64,7 +64,7 @@ int main(int argc, const char *argv[]) {
                     NSString *plist = [path stringByAppendingPathComponent:@"Info.plist"];
 
                     if (NSMutableDictionary *info = [NSMutableDictionary dictionaryWithContentsOfFile:plist]) {
-                        if (NSString *bundle = [info objectForKey:@"CFBundleIdentifier"]) {
+                        if ([info objectForKey:@"CFBundleIdentifier"] != nil) {
                             [bundles addObject:path];
                             [info setObject:path forKey:@"Path"];
                             [info setObject:@"System" forKey:@"ApplicationType"];
