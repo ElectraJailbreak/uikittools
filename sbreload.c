@@ -2,6 +2,7 @@
 #include <notify.h>
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include <CoreFoundation/CoreFoundation.h>
 
@@ -110,56 +111,86 @@ CreateMyPropertyListFromFile(const char *posixfile)
 	return propertyList;
 }
 
+#define _assert(test, format, args...) do { \
+    if (test) break; \
+    fprintf(stderr, format "\n", ##args); \
+    return 1; \
+} while (false)
+
+void stop() {
+    sleep(1);
+}
+
 int main(int argc, const char *argv[]) {
     if (argc > 1) {
         fprintf(stderr, "usage: sbreload\n");
         return 1;
     }
 
-    notify_post("com.apple.mobile.springboard_teardown");
-
-    launch_data_t request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-
     CFDictionaryRef plist = CreateMyPropertyListFromFile("/System/Library/LaunchDaemons/com.apple.SpringBoard.plist");
-    if (plist == NULL) {
-        fprintf(stderr, "CreateMyPropertyListFromFile() == NULL\n");
-        return 2;
-    }
+    _assert(plist != NULL, "CreateMyPropertyListFromFile() == NULL");
 
     launch_data_t job = CF2launch_data(plist);
-    if (job == NULL) {
-        fprintf(stderr, "CF2launch_data() == NULL\n");
-        return 3;
+    _assert(job != NULL, "CF2launch_data() == NULL");
+
+    launch_data_t data, request, response;
+
+    data = launch_data_dict_lookup(job, LAUNCH_JOBKEY_LABEL);
+    _assert(data != NULL, "launch_data_dict_lookup(LABEL) == NULL");
+    const char *label = launch_data_get_string(data);
+
+    request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+    launch_data_dict_insert(request, launch_data_new_string(label), LAUNCH_KEY_GETJOB);
+
+    response = launch_msg(request);
+    _assert(response != NULL, "launch_msg(GetJob) == NULL");
+    launch_data_free(request);
+
+    pid_t pid;
+
+    if (launch_data_get_type(response) == LAUNCH_DATA_ERRNO) {
+        int error = launch_data_get_errno(response);
+        _assert(error == ESRCH, "GetJob(%s): %s", label, strerror(error));
+        pid = -1;
+    } else if (launch_data_get_type(response) == LAUNCH_DATA_DICTIONARY) {
+        data = launch_data_dict_lookup(response, LAUNCH_JOBKEY_PID);
+        _assert(data != NULL, "launch_data_dict_lookup(PID) == NULL");
+        pid = launch_data_get_integer(data);
+    } else _assert(false, "launch_data_get_type() not in (DICTIONARY, ERRNO)");
+
+    launch_data_free(response);
+
+    fprintf(stderr, "notify_post(com.apple.mobile.springboard_teardown)\n");
+    notify_post("com.apple.mobile.springboard_teardown");
+
+    if (pid != -1) {
+        fprintf(stderr, "waiting for kill(%u) != 0...\n", pid);
+        while (kill(pid, 0) == 0)
+            stop();
+
+        int error = errno;
+        _assert(error == ESRCH, "kill(%u): %s", pid, strerror(error));
     }
 
-    const char *label = launch_data_get_string(launch_data_dict_lookup(job, LAUNCH_JOBKEY_LABEL));
+    request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
     launch_data_dict_insert(request, job, LAUNCH_KEY_SUBMITJOB);
 
-    launch_data_t response;
   launch_msg:
     response = launch_msg(request);
+    _assert(response != NULL, "launch_msg(SubmitJob) == NULL");
 
-    if (response == NULL) {
-        fprintf(stderr, "launch_msg() == NULL\n");
-        return 4;
-    }
-
-    if (launch_data_get_type(response) != LAUNCH_DATA_ERRNO) {
-        fprintf(stderr, "launch_data_get_type() != ERRNO\n");
-        return 5;
-    }
-
+    _assert(launch_data_get_type(response) == LAUNCH_DATA_ERRNO, "launch_data_get_type() != ERRNO");
     int error = launch_data_get_errno(response);
     launch_data_free(response);
 
     const char *string = strerror(error);
 
     if (error == EEXIST) {
-        fprintf(stderr, "%s: %s, retrying...\n", label, string);
-        sleep(1);
+        fprintf(stderr, "SubmitJob(%s): %s, retrying...\n", label, string);
+        stop();
         goto launch_msg;
     } else if (error != 0) {
-        fprintf(stderr, "%s: %s\n", label, string);
+        fprintf(stderr, "SubmitJob(%s): %s\n", label, string);
         return 6;
     }
 
