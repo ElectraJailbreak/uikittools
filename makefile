@@ -12,10 +12,12 @@ clean:
 	ldid -S $@
 
 package: all
-	rm -rf package
-	mkdir -p package/usr/bin
-	cp -a $(uikittools) package/usr/bin
-	mkdir -p package/DEBIAN
-	cp -a control package/DEBIAN
-	rpl '%S' "$$(du -ks package | cut -d $$'\t' -f 1)" package/DEBIAN/control
-	dpkg-deb -b package uikittools_$(shell grep ^Version: control | cut -d ' ' -f 2)_iphoneos-arm.deb
+	rm -rf _
+	mkdir -p _/usr/bin
+	cp -a $(uikittools) _/usr/bin
+	mkdir -p _/DEBIAN
+	./control.sh _ >_/DEBIAN/control
+	mkdir -p debs
+	ln -sf debs/uikittools_$$(./version.sh)_iphoneos-arm.deb uikittools.deb
+	dpkg-deb -b _ uikittools.deb
+	readlink uikittools.deb
