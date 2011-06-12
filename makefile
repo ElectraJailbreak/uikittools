@@ -1,4 +1,4 @@
-uikittools = uiduid uishoot uicache uiopen gssc sbdidlaunch sbreload cfversion
+uikittools = uiduid uishoot uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma
 
 all: $(uikittools)
 
@@ -13,6 +13,10 @@ clean:
 
 %: %.c
 	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -framework CoreFoundation
+	ldid -S $@
+
+iomfsetgamma: iomfsetgamma.c
+	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -framework IOKit -framework IOMobileFramebuffer
 	ldid -S $@
 
 package: all
