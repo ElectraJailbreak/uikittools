@@ -122,10 +122,7 @@ void stop() {
 }
 
 int main(int argc, const char *argv[]) {
-    if (argc > 1) {
-        fprintf(stderr, "usage: sbreload\n");
-        return 1;
-    }
+    _assert(argc == 1, "usage: sbreload");
 
     CFDictionaryRef plist = CreateMyPropertyListFromFile("/System/Library/LaunchDaemons/com.apple.SpringBoard.plist");
     _assert(plist != NULL, "CreateMyPropertyListFromFile() == NULL");
@@ -175,23 +172,23 @@ int main(int argc, const char *argv[]) {
     request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
     launch_data_dict_insert(request, job, LAUNCH_KEY_SUBMITJOB);
 
-  launch_msg:
-    response = launch_msg(request);
-    _assert(response != NULL, "launch_msg(SubmitJob) == NULL");
+    for (;;) {
+        response = launch_msg(request);
+        _assert(response != NULL, "launch_msg(SubmitJob) == NULL");
 
-    _assert(launch_data_get_type(response) == LAUNCH_DATA_ERRNO, "launch_data_get_type() != ERRNO");
-    int error = launch_data_get_errno(response);
-    launch_data_free(response);
+        _assert(launch_data_get_type(response) == LAUNCH_DATA_ERRNO, "launch_data_get_type() != ERRNO");
+        int error = launch_data_get_errno(response);
+        launch_data_free(response);
 
-    const char *string = strerror(error);
+        const char *string = strerror(error);
 
-    if (error == EEXIST) {
-        fprintf(stderr, "SubmitJob(%s): %s, retrying...\n", label, string);
-        stop();
-        goto launch_msg;
-    } else if (error != 0) {
-        fprintf(stderr, "SubmitJob(%s): %s\n", label, string);
-        return 6;
+        if (error == EEXIST) {
+            fprintf(stderr, "SubmitJob(%s): %s, retrying...\n", label, string);
+            stop();
+        } else {
+            _assert(error == 0, "SubmitJob(%s): %s", label, string);
+            break;
+        }
     }
 
     launch_data_free(request);
