@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     uint32_t data[0xc00 / sizeof(uint32_t)];
     memset(data, 0, sizeof(data));
 
-    FILE *file = fopen("/tmp/.iomfgamma.dat", "r");
+    FILE *file = fopen("/tmp/.iomfgamma.dat", "rb");
     if (file == NULL) {
         $IOMobileFramebufferGetGammaTable = dlsym(RTLD_DEFAULT, "IOMobileFramebufferGetGammaTable");
         _assert($IOMobileFramebufferGetGammaTable != NULL);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
         fwrite(data, 1, sizeof(data), file);
         fclose(file);
 
-        file = fopen("/tmp/.iomfgamma.dat", "r");
+        file = fopen("/tmp/.iomfgamma.dat", "rb");
         _assert(file != NULL);
     }
 
