@@ -75,18 +75,19 @@ int main(int argc, char *argv[]) {
 
     FILE *file = fopen("/tmp/.iomfgamma.dat", "r");
     if (file == NULL) {
-        file = fopen("/tmp/.iomfgamma.dat", "wb");
-
         $IOMobileFramebufferGetGammaTable = dlsym(RTLD_DEFAULT, "IOMobileFramebufferGetGammaTable");
-
         _assert($IOMobileFramebufferGetGammaTable != NULL);
         error = $IOMobileFramebufferGetGammaTable(fb, data);
         _assert(error == 0);
+
+        file = fopen("/tmp/.iomfgamma.dat", "wb");
+        _assert(file != NULL);
 
         fwrite(data, 1, sizeof(data), file);
         fclose(file);
 
         file = fopen("/tmp/.iomfgamma.dat", "r");
+        _assert(file != NULL);
     }
 
     fread(data, 1, sizeof(data), file);
