@@ -1,4 +1,4 @@
-uikittools = uiduid uishoot uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma
+uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma
 
 all: $(uikittools)
 
