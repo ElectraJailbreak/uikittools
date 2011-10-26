@@ -2,6 +2,7 @@
 #import <UIKit/UIKit.h>
 #include <stdio.h>
 #include <dlfcn.h>
+#include <objc/runtime.h>
 
 static CFArrayRef (*$GSSystemCopyCapability)(CFStringRef);
 static CFArrayRef (*$GSSystemGetCapability)(CFStringRef);
@@ -17,12 +18,15 @@ void OnGSCapabilityChanged(
 }
 
 int main(int argc, char *argv[]) {
-    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    dlopen("/System/Library/Frameworks/Foundation.framework/Foundation", RTLD_GLOBAL | RTLD_LAZY);
+    dlopen("/System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices", RTLD_GLOBAL | RTLD_LAZY);
+
+    NSAutoreleasePool *pool = [[objc_getClass("NSAutoreleasePool") alloc] init];
 
     NSString *name = nil;
 
     if (argc == 2)
-        name = [NSString stringWithUTF8String:argv[0]];
+        name = [objc_getClass("NSString") stringWithUTF8String:argv[0]];
     else if (argc > 2) {
         fprintf(stderr, "usage: %s [capability]\n", argv[0]);
         exit(1);
@@ -60,10 +64,7 @@ int main(int argc, char *argv[]) {
         CFRunLoopRun();
     }
 
-    NSLog(@"%@", capability);
-
-    /*for (NSString *value in capability)
-        printf("%s\n", [value UTF8String]);*/
+    printf("%s\n", capability == nil ? "(null)" : [[capability description] UTF8String]);
 
     [pool release];
 

@@ -7,8 +7,16 @@ clean:
 
 .PHONY: all clean package
 
+cfversion := -framework CoreFoundation
+gssc := -framework CoreFoundation
+sbdidlaunch := -framework CoreFoundation -framework SpringBoardServices
+uicache := -framework Foundation
+uiduid := -framework Foundation -framework UIKit
+uiopen := -framework Foundation -framework UIKit
+uishoot := -framework CoreFoundation -framework Foundation -framework UIKit
+
 %: %.mm
-	$${PKG_TARG}-g++ -Wall -Werror -o $@ $< -framework CoreFoundation -framework Foundation -framework UIKit -framework GraphicsServices -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc -framework SpringBoardServices
+	$${PKG_TARG}-g++ -Wall -Werror -o $@ $< $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
 	ldid -S $@
 
 %: %.c
