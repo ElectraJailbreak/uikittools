@@ -90,22 +90,14 @@ int main(int argc, const char *argv[]) {
     if (respring || kCFCoreFoundationVersionNumber >= 550.32) {
         unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons", home] UTF8String]);
         unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons.plist", home] UTF8String]);
+
         unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons", home] UTF8String]);
         unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-smallicons.plist", home] UTF8String]);
 
-        unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.SpringBoard.folderSwitcherLinen", home] UTF8String]);
-        unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.SpringBoard.notificationCenterLinen", home] UTF8String]);
-
-        unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.SpringBoard.folderSwitcherLinen.0", home] UTF8String]);
-        unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.SpringBoard.folderSwitcherLinen.1", home] UTF8String]);
-        unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.SpringBoard.folderSwitcherLinen.2", home] UTF8String]);
-        unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.SpringBoard.folderSwitcherLinen.3", home] UTF8String]);
-
         system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache", home] UTF8String]);
         system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/SpringBoardIconCache-small", home] UTF8String]);
+
         system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/com.apple.IconsCache", home] UTF8String]);
-        system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/com.apple.newsstand", home] UTF8String]);
-        system([[NSString stringWithFormat:@"rm -rf %@/Library/Caches/com.apple.springboard.sharedimagecache", home] UTF8String]);
     }
 
     system("killall installd");
