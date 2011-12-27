@@ -121,10 +121,12 @@ void stop() {
     sleep(1);
 }
 
+#define SpringBoard_plist "/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
+
 int main(int argc, const char *argv[]) {
     _assert(argc == 1, "usage: sbreload");
 
-    CFDictionaryRef plist = CreateMyPropertyListFromFile("/System/Library/LaunchDaemons/com.apple.SpringBoard.plist");
+    CFDictionaryRef plist = CreateMyPropertyListFromFile(SpringBoard_plist);
     _assert(plist != NULL, "CreateMyPropertyListFromFile() == NULL");
 
     launch_data_t job = CF2launch_data(plist);
@@ -157,8 +159,18 @@ int main(int argc, const char *argv[]) {
 
     launch_data_free(response);
 
-    fprintf(stderr, "notify_post(com.apple.mobile.springboard_teardown)\n");
-    notify_post("com.apple.mobile.springboard_teardown");
+    // 600 is being used to approximate 4.x/5.x boundary
+    if (kCFCoreFoundationVersionNumber < 600) {
+        fprintf(stderr, "notify_post(com.apple.mobile.springboard_teardown)\n");
+        notify_post("com.apple.mobile.springboard_teardown");
+    } else {
+        // XXX: this code is preferable to launchctl unoad but it requires libvproc? :(
+        //vproc_err_t *error = _vproc_send_signal_by_label(label, VPROC_MAGIC_UNLOAD_SIGNAL);
+        //_assert(error == NULL, "_vproc_send_signal_by_label(UNLOAD) != NULL");
+
+        fprintf(stderr, "launchctl unload SpringBoard.plist\n");
+        system("launchctl unload " SpringBoard_plist);
+    }
 
     if (pid != -1) {
         fprintf(stderr, "waiting for kill(%u) != 0...\n", pid);
