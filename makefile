@@ -10,7 +10,7 @@ clean:
 cfversion := -framework CoreFoundation
 gssc := -framework CoreFoundation
 sbdidlaunch := -framework CoreFoundation -framework SpringBoardServices
-uicache := -framework Foundation
+uicache := -framework Foundation -framework UIKit # XXX: UIKit -> MobileCoreServices
 uiduid := -framework Foundation -framework UIKit
 uiopen := -framework Foundation -framework UIKit
 uishoot := -framework CoreFoundation -framework Foundation -framework UIKit
