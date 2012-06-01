@@ -116,14 +116,21 @@ int main(int argc, const char *argv[]) {
 
         [cache writeToFile:path atomically:YES];
 
-        if (workspace != nil)
-            for (NSString *bundle in bundles) {
+        if (workspace != nil) {
+            for (NSString *identifier in bundles) {
                 NSString *path([bundles objectForKey:identifier]);
                 [workspace unregisterApplication:[NSURL fileURLWithPath:path]];
+            }
+
+            for (NSString *identifier in bundles)
                 if ([workspace respondsToSelector:@selector(invalidateIconCache:)])
                     [workspace invalidateIconCache:identifier];
+
+            for (NSString *identifier in bundles) {
+                NSString *path([bundles objectForKey:identifier]);
                 [workspace registerApplication:[NSURL fileURLWithPath:path]];
             }
+        }
 
         if (false) error:
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
