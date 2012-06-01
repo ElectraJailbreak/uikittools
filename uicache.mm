@@ -81,6 +81,11 @@ int main(int argc, const char *argv[]) {
     NSString *home(NSHomeDirectory());
     NSString *path([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", home]);
 
+    system("killall -SIGSTOP SpringBoard");
+    sleep(1);
+
+    @try {
+
     Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
     LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
 
@@ -150,6 +155,10 @@ int main(int argc, const char *argv[]) {
     }
 
     system("killall installd");
+
+    } @finally {
+        system("killall -SIGCONT SpringBoard");
+    }
 
     if (respring)
         system("launchctl stop com.apple.SpringBoard");
