@@ -88,7 +88,7 @@ int main(int argc, const char *argv[]) {
         NSFileManager *manager = [NSFileManager defaultManager];
         NSError *error = nil;
 
-        NSMutableArray *bundles([NSMutableArray arrayWithCapacity:16]);
+        NSMutableDictionary *bundles([NSMutableDictionary dictionaryWithCapacity:16]);
 
         id system = [cache objectForKey:@"System"];
         if (system == nil)
@@ -103,8 +103,8 @@ int main(int argc, const char *argv[]) {
                     NSString *plist = [path stringByAppendingPathComponent:@"Info.plist"];
 
                     if (NSMutableDictionary *info = [NSMutableDictionary dictionaryWithContentsOfFile:plist]) {
-                        if ([info objectForKey:@"CFBundleIdentifier"] != nil) {
-                            [bundles addObject:path];
+                        if (NSString *identifier = [info objectForKey:@"CFBundleIdentifier"]) {
+                            [bundles setObject:path forKey:identifier];
                             [info setObject:path forKey:@"Path"];
                             [info setObject:@"System" forKey:@"ApplicationType"];
                             [system addInfoDictionary:info];
@@ -118,8 +118,11 @@ int main(int argc, const char *argv[]) {
 
         if (workspace != nil)
             for (NSString *bundle in bundles) {
-                [workspace unregisterApplication:[NSURL fileURLWithPath:bundle]];
-                [workspace registerApplication:[NSURL fileURLWithPath:bundle]];
+                NSString *path([bundles objectForKey:identifier]);
+                [workspace unregisterApplication:[NSURL fileURLWithPath:path]];
+                if ([workspace respondsToSelector:@selector(invalidateIconCache:)])
+                    [workspace invalidateIconCache:identifier];
+                [workspace registerApplication:[NSURL fileURLWithPath:path]];
             }
 
         if (false) error:
