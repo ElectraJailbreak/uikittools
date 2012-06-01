@@ -17,15 +17,15 @@ uishoot := -framework CoreFoundation -framework Foundation -framework UIKit
 
 %: %.mm
 	$${PKG_TARG}-g++ -Wall -Werror -o $@ $< $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
-	ldid -S $@
+	ldid -S$(wildcard $@.xml) $@
 
 %: %.c
 	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -framework CoreFoundation
-	ldid -S $@
+	ldid -S$(wildcard $@.xml) $@
 
 iomfsetgamma: iomfsetgamma.c
 	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -framework IOKit -framework IOMobileFramebuffer
-	ldid -S $@
+	ldid -S$(wildcard $@.xml) $@
 
 package: all
 	rm -rf _
