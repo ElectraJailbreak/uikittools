@@ -86,6 +86,9 @@ int main(int argc, const char *argv[]) {
 
     @try {
 
+    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.LaunchServices-036.csstore", home] UTF8String]);
+    system("killall lsd");
+
     Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
     LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
 
