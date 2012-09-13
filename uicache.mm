@@ -125,14 +125,15 @@ int main(int argc, const char *argv[]) {
         [cache writeToFile:path atomically:YES];
 
         if (workspace != nil) {
-            for (NSString *identifier in bundles) {
-                NSString *path([bundles objectForKey:identifier]);
-                [workspace unregisterApplication:[NSURL fileURLWithPath:path]];
-            }
-
-            for (NSString *identifier in bundles)
-                if ([workspace respondsToSelector:@selector(invalidateIconCache:)])
+            if ([workspace respondsToSelector:@selector(invalidateIconCache:)]) {
+                for (NSString *identifier in bundles)
                     [workspace invalidateIconCache:identifier];
+            } else {
+                for (NSString *identifier in bundles) {
+                    NSString *path([bundles objectForKey:identifier]);
+                    [workspace unregisterApplication:[NSURL fileURLWithPath:path]];
+                }
+            }
 
             for (NSString *identifier in bundles) {
                 NSString *path([bundles objectForKey:identifier]);
