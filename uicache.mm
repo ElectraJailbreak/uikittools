@@ -92,6 +92,10 @@ int main(int argc, const char *argv[]) {
     Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
     LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
 
+    if ([workspace respondsToSelector:@selector(invalidateIconCache:)])
+        while (![workspace invalidateIconCache:nil])
+            sleep(1);
+
     if (NSMutableDictionary *cache = [NSMutableDictionary dictionaryWithContentsOfFile:path]) {
         NSFileManager *manager = [NSFileManager defaultManager];
         NSError *error = nil;
