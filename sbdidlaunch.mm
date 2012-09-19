@@ -61,6 +61,24 @@ int main() {
         NULL
     );
 
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        NULL,
+        &OnDidLaunch,
+        CFSTR("com.apple.springboard.finishedstartup"),
+        NULL,
+        NULL
+    );
+
+    CFNotificationCenterAddObserver(
+        CFNotificationCenterGetDarwinNotifyCenter(),
+        NULL,
+        &OnDidLaunch,
+        CFSTR("com.apple.springboard.bootedcleanly"),
+        NULL,
+        NULL
+    );
+
     if (SBSSpringBoardServerPort() == NULL)
         CFRunLoopRun();
 
