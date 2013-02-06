@@ -15,8 +15,10 @@ uiduid := -framework Foundation -framework UIKit
 uiopen := -framework Foundation -framework UIKit
 uishoot := -framework CoreFoundation -framework Foundation -framework UIKit
 
+uicache: csstore.cpp
+
 %: %.mm
-	$${PKG_TARG}-g++ -Wall -Werror -o $@ $< $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
+	$${PKG_TARG}-g++ -Wall -Werror -o $@ $^ $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
 	ldid -S$(wildcard $@.xml) $@
 
 %: %.c

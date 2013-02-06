@@ -48,6 +48,8 @@
 
 #include <MobileCoreServices/LSApplicationWorkspace.h>
 
+#include "csstore.hpp"
+
 @interface NSMutableArray (Cydia)
 - (void) addInfoDictionary:(NSDictionary *)info;
 @end
@@ -86,7 +88,8 @@ int main(int argc, const char *argv[]) {
 
     @try {
 
-    unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.LaunchServices-036.csstore", home] UTF8String]);
+    DeleteCSStores([home UTF8String]);
+
     system("killall lsd");
 
     Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
