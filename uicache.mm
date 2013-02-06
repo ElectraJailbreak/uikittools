@@ -105,13 +105,16 @@ int main(int argc, const char *argv[]) {
 
         NSMutableDictionary *bundles([NSMutableDictionary dictionaryWithCapacity:16]);
 
-        id system = [cache objectForKey:@"System"];
-        if (system == nil) { error:
+        id after = [cache objectForKey:@"System"];
+        if (after == nil) { error:
             fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
             goto cached;
         }
 
-        [system removeAllObjects];
+        id before([[after copy] autorelease]);
+        [after removeAllObjects];
+
+        NSArray *cached([cache objectForKey:@"InfoPlistCachedKeys"]);
 
         if (NSArray *apps = [manager contentsOfDirectoryAtPath:@"/Applications" error:&error]) {
             for (NSString *app in apps)
@@ -122,9 +125,26 @@ int main(int argc, const char *argv[]) {
                     if (NSMutableDictionary *info = [NSMutableDictionary dictionaryWithContentsOfFile:plist]) {
                         if (NSString *identifier = [info objectForKey:@"CFBundleIdentifier"]) {
                             [bundles setObject:path forKey:identifier];
+
+                            if (cached != nil) {
+                                NSMutableDictionary *merged([before objectForKey:identifier]);
+                                if (merged == nil)
+                                    merged = [NSMutableDictionary dictionary];
+                                else
+                                    merged = [[merged mutableCopy] autorelease];
+
+                                for (NSString *key in cached)
+                                    if (NSObject *value = [info objectForKey:key])
+                                        [merged setObject:value forKey:key];
+                                    else
+                                        [merged removeObjectForKey:key];
+
+                                info = merged;
+                            }
+
                             [info setObject:path forKey:@"Path"];
                             [info setObject:@"System" forKey:@"ApplicationType"];
-                            [system addInfoDictionary:info];
+                            [after addInfoDictionary:info];
                         } else
                             fprintf(stderr, "%s missing CFBundleIdentifier", [app UTF8String]);
                     }
