@@ -106,8 +106,10 @@ int main(int argc, const char *argv[]) {
         NSMutableDictionary *bundles([NSMutableDictionary dictionaryWithCapacity:16]);
 
         id system = [cache objectForKey:@"System"];
-        if (system == nil)
-            goto error;
+        if (system == nil) { error:
+            fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
+            goto cached;
+        }
 
         [system removeAllObjects];
 
@@ -147,10 +149,8 @@ int main(int argc, const char *argv[]) {
                 [workspace registerApplication:[NSURL fileURLWithPath:path]];
             }
         }
-
-        if (false) error:
-            fprintf(stderr, "%s\n", error == nil ? strerror(errno) : [[error localizedDescription] UTF8String]);
     } else fprintf(stderr, "cannot open cache file. incorrect user?\n");
+  cached:
 
     if (respring || kCFCoreFoundationVersionNumber >= 550.32) {
         unlink([[NSString stringWithFormat:@"%@/Library/Caches/com.apple.springboard-imagecache-icons", home] UTF8String]);
