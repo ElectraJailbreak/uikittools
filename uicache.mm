@@ -60,6 +60,10 @@
     [self addObject:info];
 }
 
+- (NSArray *) allInfoDictionaries {
+    return self;
+}
+
 @end
 
 @interface NSMutableDictionary (Cydia)
@@ -71,6 +75,10 @@
 - (void) addInfoDictionary:(NSDictionary *)info {
     NSString *bundle = [info objectForKey:@"CFBundleIdentifier"];
     [self setObject:info forKey:bundle];
+}
+
+- (NSArray *) allInfoDictionaries {
+    return [self allValues];
 }
 
 @end
@@ -116,6 +124,11 @@ int main(int argc, const char *argv[]) {
 
         NSArray *cached([cache objectForKey:@"InfoPlistCachedKeys"]);
 
+        NSMutableSet *removed([NSMutableSet set]);
+        for (NSDictionary *info in [before allInfoDictionaries])
+            if (NSString *path = [info objectForKey:@"Path"])
+                [removed addObject:path];
+
         if (NSArray *apps = [manager contentsOfDirectoryAtPath:@"/Applications" error:&error]) {
             for (NSString *app in apps)
                 if ([app hasSuffix:@".app"]) {
@@ -125,6 +138,7 @@ int main(int argc, const char *argv[]) {
                     if (NSMutableDictionary *info = [NSMutableDictionary dictionaryWithContentsOfFile:plist]) {
                         if (NSString *identifier = [info objectForKey:@"CFBundleIdentifier"]) {
                             [bundles setObject:path forKey:identifier];
+                            [removed removeObject:path];
 
                             if (cached != nil) {
                                 NSMutableDictionary *merged([before objectForKey:identifier]);
@@ -168,6 +182,9 @@ int main(int argc, const char *argv[]) {
                 NSString *path([bundles objectForKey:identifier]);
                 [workspace registerApplication:[NSURL fileURLWithPath:path]];
             }
+
+            for (NSString *path in removed)
+                [workspace unregisterApplication:[NSURL fileURLWithPath:path]];
         }
     } else fprintf(stderr, "cannot open cache file. incorrect user?\n");
   cached:
