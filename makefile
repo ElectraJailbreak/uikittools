@@ -3,7 +3,7 @@ uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetga
 all: $(uikittools)
 
 clean:
-	rm -f $(uikittools)
+	rm -f $(uikittools) extrainst_
 
 .PHONY: all clean package
 
