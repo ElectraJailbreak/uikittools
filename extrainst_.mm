@@ -43,6 +43,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #include "csstore.hpp"
 
@@ -99,24 +100,30 @@ bool FinishCydia(const char *finish) {
 }
 
 void FixCache(NSString *home, NSString *plist) {
-    printf("attempting to fix weather app issue:\n");
+    printf("attempting to fix weather app issue, please wait...\n");
 
     DeleteCSStores([home UTF8String]);
     unlink([plist UTF8String]);
 
-    system("launchctl stop com.apple.mobile.installd");
-    system("launchctl start com.apple.mobile.installd");
+    bool succeeded(false);
 
-    printf("waiting for application/icon cache rebuild...\n");
-    printf("this will timeout (harmlessly) after 90 seconds\n");
+    if (void *MobileInstallation$ = dlopen("/System/Library/PrivateFrameworks/MobileInstallation.framework/MobileInstallation", RTLD_GLOBAL | RTLD_LAZY)) {
+        int (*MobileInstallation$_MobileInstallationRebuildMap)(CFBooleanRef, CFBooleanRef, CFBooleanRef);
+        MobileInstallation$_MobileInstallationRebuildMap = reinterpret_cast<int (*)(CFBooleanRef, CFBooleanRef, CFBooleanRef)>(dlsym(MobileInstallation$, "_MobileInstallationRebuildMap"));
+        if (MobileInstallation$_MobileInstallationRebuildMap != NULL) {
+            if (int error = MobileInstallation$_MobileInstallationRebuildMap(kCFBooleanTrue, kCFBooleanTrue, kCFBooleanTrue))
+                printf("failed to rebuild cache (but we gave it a good try); error #%d\n", error);
+            else {
+                printf("successfully rebuilt application information cache.\n");
+                succeeded = true;
+            }
+        } else
+            printf("unable to find _MobileInstallationRebuildMap symbol.\n");
+    } else
+        printf("unable to load MobileInstallation library.\n");
 
-    for (unsigned i(0); i != 90; ++i) {
-        if (i != 0 && (i % 10) == 0)
-            printf("after %i seconds, still waiting for rebuild...\n", i);
-        if ([[NSMutableDictionary dictionaryWithContentsOfFile: plist] objectForKey: @"User"] != nil)
-            break;
-        sleep(1);
-    }
+    if (!succeeded)
+        printf("this is not a problem: it will be regenerated as the device boots\n");
 
     if (!FinishCydia("reboot"))
         printf("you must reboot to finalize your cache.\n");
