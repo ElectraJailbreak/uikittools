@@ -133,14 +133,17 @@ int main(int argc, const char *argv[]) {
     if (kCFCoreFoundationVersionNumber >= 700) { // XXX: iOS 6.x
         NSString *home(@"/var/mobile");
         NSString *plist([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", home]);
-
         NSDictionary *cache([NSDictionary dictionaryWithContentsOfFile:plist]);
-        NSObject *system([cache objectForKey:@"System"]);
-        NSDictionary *dictionary([system dictionaryOfInfoDictionaries]);
-        NSDictionary *weather([dictionary objectForKey:@"com.apple.weather"]);
 
-        if (weather != nil && [weather objectForKey:@"Container"] == nil)
-            FixCache(home, plist);
+        NSArray *cached([cache objectForKey:@"MICachedKeys"]);
+        if (cached != nil && [cached containsObject:@"Container"]) {
+            NSObject *system([cache objectForKey:@"System"]);
+            NSDictionary *dictionary([system dictionaryOfInfoDictionaries]);
+            NSDictionary *weather([dictionary objectForKey:@"com.apple.weather"]);
+
+            if (weather != nil && [weather objectForKey:@"Container"] == nil)
+                FixCache(home, plist);
+        }
     }
 
     [pool release];
