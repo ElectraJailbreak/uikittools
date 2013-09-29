@@ -41,10 +41,18 @@
 #import <UIKit/UIDevice.h>
 #include <stdio.h>
 
+#include <dlfcn.h>
+
 int main(int argc, char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    printf("%s\n", [[[UIDevice currentDevice] uniqueIdentifier] UTF8String]);
+    NSString *udid;
+    if (kCFCoreFoundationVersionNumber < 800)
+        udid = [[UIDevice currentDevice] uniqueIdentifier];
+    else
+        udid = [reinterpret_cast<NSString *(*)(NSString *)>(dlsym(dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY), "MGCopyAnswer"))(@"UniqueDeviceID") autorelease];
+
+    printf("%s\n", [udid UTF8String]);
 
     [pool release];
     return 0;
