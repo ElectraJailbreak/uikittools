@@ -97,13 +97,13 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        if (capability != nil)
+        if (capability != nil) {
+            printf("%s\n", capability == nil ? "(null)" : [[capability description] UTF8String]);
             break;
+        }
 
         CFRunLoopRun();
     }
-
-    printf("%s\n", capability == nil ? "(null)" : [[capability description] UTF8String]);
 
     [pool release];
 
