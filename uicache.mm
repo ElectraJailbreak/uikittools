@@ -180,7 +180,10 @@ int main(int argc, const char *argv[]) {
 
             for (NSString *identifier in bundles) {
                 NSString *path([bundles objectForKey:identifier]);
-                [workspace registerApplication:[NSURL fileURLWithPath:path]];
+                if (kCFCoreFoundationVersionNumber >= 800)
+                    [workspace registerApplicationDictionary:[after objectForKey:identifier]];
+                else
+                    [workspace registerApplication:[NSURL fileURLWithPath:path]];
             }
 
             for (NSString *path in removed)
