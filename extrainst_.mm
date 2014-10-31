@@ -137,7 +137,7 @@ int main(int argc, const char *argv[]) {
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-    if (kCFCoreFoundationVersionNumber >= 700) { // XXX: iOS 6.x
+    if (kCFCoreFoundationVersionNumber >= 700 && kCFCoreFoundationVersionNumber < 800) { // XXX: iOS 6.x
         NSString *home(@"/var/mobile");
         NSString *plist([NSString stringWithFormat:@"%@/Library/Caches/com.apple.mobile.installation.plist", home]);
         NSDictionary *cache([NSDictionary dictionaryWithContentsOfFile:plist]);
