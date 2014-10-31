@@ -89,6 +89,7 @@ int main(int argc, const char *argv[]) {
     Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
     LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
 
+    if (kCFCoreFoundationVersionNumber > 1000) // this API is on iOS 7 but invaliding the icon cache is harder there
     if ([workspace respondsToSelector:@selector(_LSPrivateRebuildApplicationDatabasesForSystemApps:internal:user:)]) {
         if (![workspace _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:NO])
             fprintf(stderr, "failed to rebuild application databases");
