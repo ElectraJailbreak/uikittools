@@ -86,6 +86,15 @@
 int main(int argc, const char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
+    Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
+    LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
+
+    if ([workspace respondsToSelector:@selector(_LSPrivateRebuildApplicationDatabasesForSystemApps:internal:user:)]) {
+        if (![workspace _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:NO])
+            fprintf(stderr, "failed to rebuild application databases");
+        return 0;
+    }
+
     bool respring(false);
 
     NSString *home(NSHomeDirectory());
@@ -99,9 +108,6 @@ int main(int argc, const char *argv[]) {
     DeleteCSStores([home UTF8String]);
 
     system("killall lsd");
-
-    Class $LSApplicationWorkspace(objc_getClass("LSApplicationWorkspace"));
-    LSApplicationWorkspace *workspace($LSApplicationWorkspace == nil ? nil : [$LSApplicationWorkspace defaultWorkspace]);
 
     if ([workspace respondsToSelector:@selector(invalidateIconCache:)])
         while (![workspace invalidateIconCache:nil])

@@ -5,5 +5,17 @@
 	<array>
 		<string>InstallForLaunchServices</string>
 	</array>
+
+	<key>com.apple.lsapplicationworkspace.rebuildappdatabases</key>
+	<true/>
+
+	<key>com.apple.private.MobileContainerManager.allowed</key>
+	<true/>
+
+	<key>com.apple.private.kernel.override-cpumon</key>
+	<true/>
+
+	<key>com.apple.vpn.installer_events</key>
+	<true/>
 </dict>
 </plist>
