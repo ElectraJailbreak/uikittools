@@ -47,6 +47,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <string.h>
+#include <mach-o/loader.h>
 
 #include "csstore.hpp"
 
@@ -133,8 +134,46 @@ void FixCache(NSString *home, NSString *plist) {
 }
 
 #define INSTALLD "/usr/libexec/installd"
+#define LIBUICACHE "/usr/lib/libuicache.dylib"
 
 static void *(*$memmem)(const void *, size_t, const void *, size_t);
+
+template <typename Header>
+static bool PatchInstall(void *data) {
+    Header *header(reinterpret_cast<Header *>(data));
+
+    load_command *command(reinterpret_cast<load_command *>(header + 1));
+    for (size_t i(0); i != header->ncmds; ++i) {
+        command = reinterpret_cast<load_command *>(reinterpret_cast<uint8_t *>(command) + command->cmdsize);
+        if (command->cmd != LC_LOAD_DYLIB)
+            continue;
+
+        dylib_command *load(reinterpret_cast<dylib_command *>(command));
+        const char *name(reinterpret_cast<char *>(command) + load->dylib.name.offset);
+        if (strcmp(name, LIBUICACHE) == 0)
+            return false;
+    }
+
+    if (reinterpret_cast<uint8_t *>(command) != reinterpret_cast<uint8_t *>(header + 1) + header->sizeofcmds)
+        return false;
+
+    dylib_command *load(reinterpret_cast<dylib_command *>(command));
+    memset(load, 0, sizeof(*load));
+    load->cmd = LC_LOAD_DYLIB;
+
+    load->cmdsize = sizeof(*load) + sizeof(LIBUICACHE);
+    load->cmdsize = (load->cmdsize + 15) / 16 * 16;
+    memset(load + 1, 0, load->cmdsize - sizeof(*load));
+
+    dylib *dylib(&load->dylib);
+    dylib->name.offset = sizeof(*load);
+    memcpy(load + 1, LIBUICACHE, sizeof(LIBUICACHE));
+
+    ++header->ncmds;
+    header->sizeofcmds += load->cmdsize;
+
+    return true;
+}
 
 static bool PatchInstall() {
     int fd(open(INSTALLD, O_RDWR));
@@ -154,14 +193,13 @@ static bool PatchInstall() {
         return false;
 
     bool changed(false);
-    for (;;) {
-        void *name($memmem(data, size, "__restrict", 10));
-        if (name == NULL)
+    switch (*reinterpret_cast<uint32_t *>(data)) {
+        case MH_MAGIC:
+            changed = PatchInstall<mach_header>(data);
             break;
-        else {
-            memcpy(name, "__uicache_", 10);
-            changed = true;
-        }
+        case MH_MAGIC_64:
+            changed = PatchInstall<mach_header_64>(data);
+            break;
     }
 
     munmap(data, size);
@@ -172,56 +210,6 @@ static bool PatchInstall() {
         system("mv -f "INSTALLD"_ "INSTALLD"");
     }
 
-    return true;
-}
-
-#define SubstrateLaunchDaemons_ "/Library/LaunchDaemons"
-#define SubstrateVariable_ "DYLD_INSERT_LIBRARIES"
-#define SubstrateLibrary_ "/usr/lib/libuicache.dylib"
-
-static bool HookInstall() {
-    NSString *file([NSString stringWithFormat:@"%@/%s.plist", @ SubstrateLaunchDaemons_, "com.apple.mobile.installd"]);
-    if (file == nil)
-        return false;
-
-    NSMutableDictionary *root([NSMutableDictionary dictionaryWithContentsOfFile:file]);
-    if (root == nil)
-        return false;
-
-    NSMutableDictionary *environment([root objectForKey:@"EnvironmentVariables"]);
-    if (environment == nil) {
-        environment = [NSMutableDictionary dictionaryWithCapacity:1];
-        if (environment == nil)
-            return false;
-
-        [root setObject:environment forKey:@"EnvironmentVariables"];
-    }
-
-    NSString *variable([environment objectForKey:@ SubstrateVariable_]);
-    if (variable == nil || [variable length] == 0)
-        [environment setObject:@ SubstrateLibrary_ forKey:@ SubstrateVariable_];
-    else {
-        NSArray *dylibs([variable componentsSeparatedByString:@":"]);
-        if (dylibs == nil)
-            return false;
-
-        NSUInteger index([dylibs indexOfObject:@ SubstrateLibrary_]);
-        if (index != NSNotFound)
-            return false;
-
-        [environment setObject:[NSString stringWithFormat:@"%@:%@", variable, @ SubstrateLibrary_] forKey:@ SubstrateVariable_];
-    }
-
-    NSString *error;
-    NSData *data([NSPropertyListSerialization dataFromPropertyList:root format:NSPropertyListBinaryFormat_v1_0 errorDescription:&error]);
-    if (data == nil)
-        return false;
-
-    if (![data writeToFile:file atomically:YES])
-        return false;
-
-    system("launchctl unload /Library/LaunchDaemons/com.apple.mobile.installd.plist");
-    system("launchctl load /Library/LaunchDaemons/com.apple.mobile.installd.plist");
     return true;
 }
 
@@ -237,8 +225,7 @@ int main(int argc, const char *argv[]) {
 
     if (kCFCoreFoundationVersionNumber >= 1143) // XXX: iOS 8.3+
         if (PatchInstall())
-            if (HookInstall())
-                FinishCydia("reboot");
+            system("launchctl stop com.apple.mobile.installd");
 
     if (kCFCoreFoundationVersionNumber >= 700 && kCFCoreFoundationVersionNumber < 800) { // XXX: iOS 6.x
         NSString *home(@"/var/mobile");
