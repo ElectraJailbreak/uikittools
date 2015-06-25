@@ -1,4 +1,4 @@
-uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma
+uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma libuicache.dylib
 
 all: $(uikittools)
 
@@ -19,6 +19,10 @@ extrainst_ := -framework CoreFoundation -framework Foundation
 uicache: csstore.cpp
 extrainst_: csstore.cpp
 
+%.dylib: %.mm
+	$${PKG_TARG}-g++ -Wall -Werror -dynamiclib -o $@ $^ $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc -framework CoreFoundation -framework Foundation
+	ldid -S $@
+
 %: %.mm
 	$${PKG_TARG}-g++ -Wall -Werror -o $@ $^ $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
 	ldid -S$(wildcard $@.xml) $@
@@ -33,8 +37,10 @@ iomfsetgamma: iomfsetgamma.c
 
 package: all extrainst_
 	rm -rf _
+	mkdir -p _/usr/lib
+	cp -a $(filter %.dylib,$(uikittools)) _/usr/lib
 	mkdir -p _/usr/bin
-	cp -a $(uikittools) _/usr/bin
+	cp -a $(filter-out %.dylib,$(uikittools)) _/usr/bin
 	mkdir -p _/DEBIAN
 	./control.sh _ >_/DEBIAN/control
 	cp -a extrainst_ _/DEBIAN/

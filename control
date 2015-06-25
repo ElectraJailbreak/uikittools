@@ -4,9 +4,12 @@ Section: Utilities
 Maintainer: Jay Freeman (saurik) <saurik@saurik.com>
 Architecture: iphoneos-arm
 Version: 
+Essential: yes
 Description: UIKit/GraphicsServices command line access
 Name: UIKit Tools
 Author: Jay Freeman (saurik) <saurik@saurik.com>
 Depiction: http://cydia.saurik.com/info/uikittools/
-Depends: coreutils-bin
+Depends: coreutils-bin, firmware (<< 8.2) | ldid
+Replaces: taiguicache
+Conflicts: taiguicache
 Tag: purpose::console, role::hacker
