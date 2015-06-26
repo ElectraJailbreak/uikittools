@@ -12,9 +12,19 @@ static NSArray *(*_MIFileManager$urlsForItemsInDirectoryAtURL$ignoringSymlinks$e
 
 static NSArray *$MIFileManager$urlsForItemsInDirectoryAtURL$ignoringSymlinks$error$(MIFileManager *self, SEL _cmd, NSURL *url, BOOL ignoring, NSError *error) {
     MIFileManager *manager(reinterpret_cast<MIFileManager *>([$MIFileManager defaultManager]));
-    if (NSURL *destiny = [manager destinationOfSymbolicLinkAtURL:url error:NULL])
-        url = destiny;
-    return _MIFileManager$urlsForItemsInDirectoryAtURL$ignoringSymlinks$error$(self, _cmd, url, NO, error);
+    NSURL *destiny([manager destinationOfSymbolicLinkAtURL:url error:NULL]);
+    if (destiny == nil)
+        return _MIFileManager$urlsForItemsInDirectoryAtURL$ignoringSymlinks$error$(self, _cmd, url, YES, error);
+
+    NSArray *prefix([url pathComponents]);
+    size_t skip([[destiny pathComponents] count]);
+    NSMutableArray *items([NSMutableArray array]);
+    for (NSURL *item in _MIFileManager$urlsForItemsInDirectoryAtURL$ignoringSymlinks$error$(self, _cmd, destiny, YES, error)) {
+        NSArray *components([item pathComponents]);
+        [items addObject:[NSURL fileURLWithPathComponents:[prefix arrayByAddingObjectsFromArray:[components subarrayWithRange:NSMakeRange(skip, [components count] - skip)]]]];
+    }
+
+    return items;
 }
 
 __attribute__((__constructor__))
