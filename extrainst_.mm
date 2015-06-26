@@ -133,86 +133,6 @@ void FixCache(NSString *home, NSString *plist) {
         printf("you must reboot to finalize your cache.\n");
 }
 
-#define INSTALLD "/usr/libexec/installd"
-#define LIBUICACHE "/usr/lib/libuicache.dylib"
-
-static void *(*$memmem)(const void *, size_t, const void *, size_t);
-
-template <typename Header>
-static bool PatchInstall(void *data) {
-    Header *header(reinterpret_cast<Header *>(data));
-
-    load_command *command(reinterpret_cast<load_command *>(header + 1));
-    for (size_t i(0); i != header->ncmds; ++i) {
-        command = reinterpret_cast<load_command *>(reinterpret_cast<uint8_t *>(command) + command->cmdsize);
-        if (command->cmd != LC_LOAD_DYLIB)
-            continue;
-
-        dylib_command *load(reinterpret_cast<dylib_command *>(command));
-        const char *name(reinterpret_cast<char *>(command) + load->dylib.name.offset);
-        if (strcmp(name, LIBUICACHE) == 0)
-            return false;
-    }
-
-    if (reinterpret_cast<uint8_t *>(command) != reinterpret_cast<uint8_t *>(header + 1) + header->sizeofcmds)
-        return false;
-
-    dylib_command *load(reinterpret_cast<dylib_command *>(command));
-    memset(load, 0, sizeof(*load));
-    load->cmd = LC_LOAD_DYLIB;
-
-    load->cmdsize = sizeof(*load) + sizeof(LIBUICACHE);
-    load->cmdsize = (load->cmdsize + 15) / 16 * 16;
-    memset(load + 1, 0, load->cmdsize - sizeof(*load));
-
-    dylib *dylib(&load->dylib);
-    dylib->name.offset = sizeof(*load);
-    memcpy(load + 1, LIBUICACHE, sizeof(LIBUICACHE));
-
-    ++header->ncmds;
-    header->sizeofcmds += load->cmdsize;
-
-    return true;
-}
-
-static bool PatchInstall() {
-    int fd(open(INSTALLD, O_RDWR));
-    if (fd == -1)
-        return false;
-
-    struct stat stat;
-    if (fstat(fd, &stat) == -1) {
-        close(fd);
-        return false;
-    }
-
-    size_t size(stat.st_size);
-    void *data(mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0));
-    close(fd);
-    if (data == MAP_FAILED)
-        return false;
-
-    bool changed(false);
-    switch (*reinterpret_cast<uint32_t *>(data)) {
-        case MH_MAGIC:
-            changed = PatchInstall<mach_header>(data);
-            break;
-        case MH_MAGIC_64:
-            changed = PatchInstall<mach_header_64>(data);
-            break;
-    }
-
-    munmap(data, size);
-
-    if (changed) {
-        system("ldid -s "INSTALLD"");
-        system("cp -af "INSTALLD" "INSTALLD"_");
-        system("mv -f "INSTALLD"_ "INSTALLD"");
-    }
-
-    return true;
-}
-
 int main(int argc, const char *argv[]) {
     if (argc < 2 || (
         strcmp(argv[1], "install") != 0 &&
@@ -220,12 +140,6 @@ int main(int argc, const char *argv[]) {
     true)) return 0;
 
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-    $memmem = reinterpret_cast<void *(*)(const void *, size_t, const void *, size_t)>(dlsym(RTLD_DEFAULT, "memmem"));
-
-    if (kCFCoreFoundationVersionNumber >= 1143) // XXX: iOS 8.3+
-        if (PatchInstall())
-            system("launchctl stop com.apple.mobile.installd");
 
     if (kCFCoreFoundationVersionNumber >= 700 && kCFCoreFoundationVersionNumber < 800) { // XXX: iOS 6.x
         NSString *home(@"/var/mobile");

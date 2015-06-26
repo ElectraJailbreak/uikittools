@@ -1,4 +1,4 @@
-uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma libuicache.dylib
+uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma
 
 all: $(uikittools)
 
@@ -24,10 +24,6 @@ uishoot := -framework UIKit
 uicache: csstore.cpp
 extrainst_: csstore.cpp
 
-%.dylib: %.mm
-	cycc -i2.0 -o$@ -- -dynamiclib $(flags) $^ $($@) -lobjc
-	ldid -S $@
-
 %: %.mm
 	cycc -i2.0 -o$@ -- $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
@@ -38,8 +34,6 @@ extrainst_: csstore.cpp
 
 package: all extrainst_
 	sudo rm -rf _
-	mkdir -p _/usr/lib
-	cp -a $(filter %.dylib,$(uikittools)) _/usr/lib
 	mkdir -p _/usr/bin
 	cp -a $(filter-out %.dylib,$(uikittools)) _/usr/bin
 	mkdir -p _/DEBIAN
