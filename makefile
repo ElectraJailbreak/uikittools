@@ -9,30 +9,31 @@ clean:
 
 private := -F/System/Library/PrivateFrameworks
 
-cfversion := -framework CoreFoundation
-gssc := -lobjc -framework CoreFoundation
+flags := -Os -Werror
+flags += -framework CoreFoundation
+flags += -framework Foundation
+
+gssc := -lobjc
 iomfsetgamma := -I. $(private) -framework IOKit -framework IOMobileFramebuffer
-sbdidlaunch := $(private) -framework CoreFoundation -framework SpringBoardServices
-sbreload := -framework CoreFoundation
-uicache := -framework Foundation -framework UIKit # XXX: UIKit -> MobileCoreServices
-uiduid := -framework Foundation -framework UIKit
-uiopen := -framework Foundation -framework UIKit
-uishoot := -framework CoreFoundation -framework Foundation -framework UIKit
-extrainst_ := -framework CoreFoundation -framework Foundation
+sbdidlaunch := $(private) -framework SpringBoardServices
+uicache := -framework UIKit # XXX: UIKit -> MobileCoreServices
+uiduid := --framework UIKit
+uiopen := --framework UIKit
+uishoot := -framework UIKit
 
 uicache: csstore.cpp
 extrainst_: csstore.cpp
 
 %.dylib: %.mm
-	cycc -i2.0 -o$@ -- -dynamiclib -Werror $^ $($@) -lobjc
+	cycc -i2.0 -o$@ -- -dynamiclib $(flags) $^ $($@) -lobjc
 	ldid -S $@
 
 %: %.mm
-	cycc -i2.0 -o$@ -- -Werror $^ $($@)
+	cycc -i2.0 -o$@ -- $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 %: %.c
-	cycc -i2.0 -o$@ -- -Werror -x c $^ $($@)
+	cycc -i2.0 -o$@ -- -x c $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 package: all extrainst_
