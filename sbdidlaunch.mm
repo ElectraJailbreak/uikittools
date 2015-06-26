@@ -58,7 +58,7 @@ int main() {
         &OnDidLaunch,
         CFSTR("SBSpringBoardDidLaunchNotification"),
         NULL,
-        NULL
+        0
     );
 
     CFNotificationCenterAddObserver(
@@ -67,7 +67,7 @@ int main() {
         &OnDidLaunch,
         CFSTR("com.apple.springboard.finishedstartup"),
         NULL,
-        NULL
+        0
     );
 
     CFNotificationCenterAddObserver(
@@ -76,7 +76,7 @@ int main() {
         &OnDidLaunch,
         CFSTR("com.apple.springboard.bootedcleanly"),
         NULL,
-        NULL
+        0
     );
 
     if (SBSSpringBoardServerPort() == NULL)

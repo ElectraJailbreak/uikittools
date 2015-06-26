@@ -43,6 +43,10 @@
 
 #include <dlfcn.h>
 
+@interface UIDevice (Apple)
+- (NSString *) uniqueIdentifier;
+@end
+
 int main(int argc, char *argv[]) {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 

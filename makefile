@@ -7,9 +7,13 @@ clean:
 
 .PHONY: all clean package
 
+private := -F/System/Library/PrivateFrameworks
+
 cfversion := -framework CoreFoundation
-gssc := -framework CoreFoundation
-sbdidlaunch := -framework CoreFoundation -framework SpringBoardServices
+gssc := -lobjc -framework CoreFoundation
+iomfsetgamma := -I. $(private) -framework IOKit -framework IOMobileFramebuffer
+sbdidlaunch := $(private) -framework CoreFoundation -framework SpringBoardServices
+sbreload := -framework CoreFoundation
 uicache := -framework Foundation -framework UIKit # XXX: UIKit -> MobileCoreServices
 uiduid := -framework Foundation -framework UIKit
 uiopen := -framework Foundation -framework UIKit
@@ -20,23 +24,19 @@ uicache: csstore.cpp
 extrainst_: csstore.cpp
 
 %.dylib: %.mm
-	$${PKG_TARG}-g++ -Wall -Werror -dynamiclib -o $@ $^ $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc -framework CoreFoundation -framework Foundation
+	cycc -i2.0 -o$@ -- -dynamiclib -Werror $^ $($@) -lobjc
 	ldid -S $@
 
 %: %.mm
-	$${PKG_TARG}-g++ -Wall -Werror -o $@ $^ $($@) -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -lobjc
+	cycc -i2.0 -o$@ -- -Werror $^ $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 %: %.c
-	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -framework CoreFoundation
-	ldid -S$(wildcard $@.xml) $@
-
-iomfsetgamma: iomfsetgamma.c
-	$${PKG_TARG}-gcc -Wall -Werror -o $@ $< -F"$${PKG_ROOT}"/System/Library/PrivateFrameworks -framework IOKit -framework IOMobileFramebuffer
+	cycc -i2.0 -o$@ -- -Werror -x c $^ $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 package: all extrainst_
-	rm -rf _
+	sudo rm -rf _
 	mkdir -p _/usr/lib
 	cp -a $(filter %.dylib,$(uikittools)) _/usr/lib
 	mkdir -p _/usr/bin
@@ -46,5 +46,7 @@ package: all extrainst_
 	cp -a extrainst_ _/DEBIAN/
 	mkdir -p debs
 	ln -sf debs/uikittools_$$(./version.sh)_iphoneos-arm.deb uikittools.deb
+	sudo chown -R 0 _
+	sudo chgrp -R 0 _
 	dpkg-deb -b _ uikittools.deb
 	readlink uikittools.deb

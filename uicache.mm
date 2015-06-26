@@ -46,8 +46,6 @@
 
 #include <objc/runtime.h>
 
-#include <MobileCoreServices/LSApplicationWorkspace.h>
-
 #include "csstore.hpp"
 
 @interface NSMutableArray (Cydia)
@@ -81,6 +79,16 @@
     return [self allValues];
 }
 
+@end
+
+@interface LSApplicationWorkspace : NSObject
++ (id) defaultWorkspace;
+- (BOOL) registerApplication:(id)application;
+- (BOOL) unregisterApplication:(id)application;
+- (BOOL) invalidateIconCache:(id)bundle;
+- (BOOL) registerApplicationDictionary:(id)application;
+- (BOOL) installApplication:(id)application withOptions:(id)options;
+- (BOOL) _LSPrivateRebuildApplicationDatabasesForSystemApps:(BOOL)system internal:(BOOL)internal user:(BOOL)user;
 @end
 
 int main(int argc, const char *argv[]) {

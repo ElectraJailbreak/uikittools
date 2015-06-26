@@ -37,7 +37,6 @@
 */
 /* }}} */
 
-#import <GraphicsServices/GraphicsServices.h>
 #import <UIKit/UIKit.h>
 #include <stdio.h>
 #include <dlfcn.h>
@@ -80,7 +79,7 @@ int main(int argc, char *argv[]) {
         &OnGSCapabilityChanged,
         CFSTR("GSCapabilitiesChanged"),
         NULL,
-        NULL
+        0
     );
 
     for (;;) {
@@ -93,6 +92,8 @@ int main(int argc, char *argv[]) {
         } else if ($GSSystemGetCapability != NULL) {
             capability = reinterpret_cast<const NSDictionary *>((*$GSSystemGetCapability)(reinterpret_cast<CFStringRef>(name)));
         } else {
+            capability = nil;
+
             if (void *libMobileGestalt = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_GLOBAL | RTLD_LAZY))
                 if (CFTypeRef (*$MGCopyAnswer)(CFStringRef) = reinterpret_cast<CFTypeRef (*)(CFStringRef)>(dlsym(libMobileGestalt, "MGCopyAnswer"))) {
                     NSMutableDictionary *answers([NSMutableDictionary dictionary]);
