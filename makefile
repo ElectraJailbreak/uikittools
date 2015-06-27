@@ -17,8 +17,8 @@ gssc := -lobjc
 iomfsetgamma := -I. $(private) -framework IOKit -framework IOMobileFramebuffer
 sbdidlaunch := $(private) -framework SpringBoardServices
 uicache := -framework UIKit # XXX: UIKit -> MobileCoreServices
-uiduid := --framework UIKit
-uiopen := --framework UIKit
+uiduid := -framework UIKit
+uiopen := -framework UIKit
 uishoot := -framework UIKit
 
 uicache: csstore.cpp
