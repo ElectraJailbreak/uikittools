@@ -98,6 +98,26 @@ int main(int argc, char *argv[]) {
                 if (CFTypeRef (*$MGCopyAnswer)(CFStringRef) = reinterpret_cast<CFTypeRef (*)(CFStringRef)>(dlsym(libMobileGestalt, "MGCopyAnswer"))) {
                     NSMutableDictionary *answers([NSMutableDictionary dictionary]);
                     for (NSString *name in [NSArray arrayWithObjects:
+                        @"HasSEP",
+                        @"HasThinBezel",
+                        @"apple-internal-install",
+                        @"cameraRestriction",
+                        @"data-plan",
+                        @"multitasking-gestures",
+                        @"rear-facing-camera",
+                        @"wapi",
+                        @"watch-companion",
+
+                        @"AirDropCapability",
+                        @"CarrierInstallCapability",
+                        @"CellularTelephonyCapability",
+                        @"UIParallaxCapability",
+                        @"ambient-light-sensor",
+                        @"personal-hotspot",
+                        @"shoebox",
+                        @"hall-effect-sensor",
+                        @"3Gvenice",
+
                         @"ActiveWirelessTechnology",
                         //@"AirplaneMode",
                         @"AllDeviceCapabilities",
