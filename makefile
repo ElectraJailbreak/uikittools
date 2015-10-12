@@ -25,12 +25,10 @@ uicache: csstore.cpp
 extrainst_: csstore.cpp
 
 %: %.mm
-	sudo xcode-select --switch /Applications/Xcode-4.6.3.app
 	cycc -i2.0 -o$@ -- $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 %: %.c
-	sudo xcode-select --switch /Applications/Xcode-4.6.3.app
 	cycc -i2.0 -o$@ -- -x c $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
