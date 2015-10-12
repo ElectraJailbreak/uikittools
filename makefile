@@ -12,6 +12,8 @@ private := -F/System/Library/PrivateFrameworks
 flags := -Os -Werror
 flags += -framework CoreFoundation
 flags += -framework Foundation
+flags += -miphoneos-version-min=2.0
+flags += -arch armv6
 
 gssc := -lobjc
 iomfsetgamma := -I. $(private) -framework IOKit -framework IOMobileFramebuffer
@@ -25,11 +27,11 @@ uicache: csstore.cpp
 extrainst_: csstore.cpp
 
 %: %.mm
-	cycc -i2.0 -o$@ -- $^ $(flags) $($@)
+	cycc -- -o $@ $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 %: %.c
-	cycc -i2.0 -o$@ -- -x c $^ $(flags) $($@)
+	cycc -- -o $@ -x c $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
 package: all extrainst_
