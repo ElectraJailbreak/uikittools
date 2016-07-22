@@ -5,6 +5,7 @@ debs
 extrainst_
 gssc
 iomfsetgamma
+ldrestart
 sbdidlaunch
 sbreload
 uicache

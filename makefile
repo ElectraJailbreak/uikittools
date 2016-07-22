@@ -1,4 +1,4 @@
-uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma
+uikittools = uiduid uicache uiopen gssc sbdidlaunch sbreload cfversion iomfsetgamma ldrestart
 
 all: $(uikittools)
 
@@ -15,6 +15,7 @@ flags += -framework Foundation
 flags += -miphoneos-version-min=2.0
 flags += -arch armv6
 
+ldrestart := -std=c++11
 gssc := -lobjc
 iomfsetgamma := -I. $(private) -framework IOKit -framework IOMobileFramebuffer
 sbdidlaunch := $(private) -framework SpringBoardServices
@@ -27,6 +28,10 @@ uicache: csstore.cpp
 extrainst_: csstore.cpp
 
 %: %.mm
+	cycc -- -o $@ $^ $(flags) $($@)
+	ldid -S$(wildcard $@.xml) $@
+
+%: %.cpp
 	cycc -- -o $@ $^ $(flags) $($@)
 	ldid -S$(wildcard $@.xml) $@
 
