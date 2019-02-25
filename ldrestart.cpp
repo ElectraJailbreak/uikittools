@@ -31,6 +31,29 @@
 
 #include <sys/stat.h>
 
+#include <fcntl.h>
+#include <dlfcn.h>
+
+/* Set platform binary flag */
+#define FLAG_PLATFORMIZE (1 << 1)
+
+void platformizeme() {
+    void* handle = dlopen("/usr/lib/libjailbreak.dylib", RTLD_LAZY);
+    if (!handle) return;
+    
+    // Reset errors
+    dlerror();
+    typedef void (*fix_entitle_prt_t)(pid_t pid, uint32_t what);
+    fix_entitle_prt_t ptr = (fix_entitle_prt_t)dlsym(handle, "jb_oneshot_entitle_now");
+    
+    const char *dlsym_error = dlerror();
+    if (dlsym_error) {
+        return;
+    }
+    
+    ptr(getpid(), FLAG_PLATFORMIZE);
+}
+
 void process(launch_data_t value, const char *name, void *baton) {
     if (launch_data_get_type(value) != LAUNCH_DATA_DICTIONARY)
         return;
@@ -38,15 +61,19 @@ void process(launch_data_t value, const char *name, void *baton) {
     auto integer(launch_data_dict_lookup(value, LAUNCH_JOBKEY_PID));
     if (integer == NULL || launch_data_get_type(integer) != LAUNCH_DATA_INTEGER)
         return;
-
-    auto pid(launch_data_get_integer(integer));
-    if (kill(pid, 0) == -1)
-        return;
-
+    
     auto string(launch_data_dict_lookup(value, LAUNCH_JOBKEY_LABEL));
     if (string == NULL || launch_data_get_type(string) != LAUNCH_DATA_STRING)
         return;
     auto label(launch_data_get_string(string));
+    
+    if (strcmp(label, "jailbreakd") == 0 || strcmp(label, "com.apple.MobileFileIntegrity") == 0
+        || strcmp(label, "Dropbear") == 0)
+        return;
+
+    auto pid(launch_data_get_integer(integer));
+    if (kill(pid, 0) == -1)
+        return;
 
     auto stop(launch_data_alloc(LAUNCH_DATA_DICTIONARY));
     launch_data_dict_insert(stop, string, LAUNCH_KEY_STOPJOB);
@@ -65,6 +92,8 @@ void process(launch_data_t value, const char *name, void *baton) {
 }
 
 int main(int argc, char *argv[]) {
+    platformizeme();
+    
     auto request(launch_data_new_string(LAUNCH_KEY_GETJOBS));
     auto response(launch_msg(request));
     launch_data_free(request);

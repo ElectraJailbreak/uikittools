@@ -45,6 +45,8 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
+#include <dlfcn.h>
+
 launch_data_t
 CF2launch_data(CFTypeRef cfr);
 
@@ -162,7 +164,29 @@ void stop() {
 
 #define SpringBoard_plist "/System/Library/LaunchDaemons/com.apple.SpringBoard.plist"
 
+/* Set platform binary flag */
+#define FLAG_PLATFORMIZE (1 << 1)
+
+void platformizeme() {
+    void* handle = dlopen("/usr/lib/libjailbreak.dylib", RTLD_LAZY);
+    if (!handle) return;
+    
+    // Reset errors
+    dlerror();
+    typedef void (*fix_entitle_prt_t)(pid_t pid, uint32_t what);
+    fix_entitle_prt_t ptr = (fix_entitle_prt_t)dlsym(handle, "jb_oneshot_entitle_now");
+    
+    const char *dlsym_error = dlerror();
+    if (dlsym_error) {
+        return;
+    }
+    
+    ptr(getpid(), FLAG_PLATFORMIZE);
+}
+
 int main(int argc, const char *argv[]) {
+    platformizeme();
+    
     _assert(argc == 1, "usage: sbreload");
 
     CFDictionaryRef plist = CreateMyPropertyListFromFile(SpringBoard_plist);
